@@ -1,0 +1,413 @@
+import pygame
+from random import randint
+import time
+
+class Racetrack:
+    change_speed = False
+    def __init__(self, kind, size, speed):
+        self.kind = kind
+        self.speed = speed
+        self.size = size
+    def change_speed(self, change_speed = False):
+        if change_speed == False:
+            self.speed = 0
+        else:
+            self.speed = 25
+
+class MysteryBox:
+    def __init__(self, y_box):
+        self.x_box = randint(150,250)
+        self.y_box = y_box
+        self.mystery_num = randint(1,902)
+        self.boxcolor = (255,0,250)
+    def drawbox(self, dis):
+        pygame.draw.rect(dis, self.boxcolor, (self.x_box, self.y_box, 20, 20))
+
+class Racecar(MysteryBox):
+    def __init__(self, y_box, color, x_car, y_car, speed, size, bet, rank, times):
+        super().__init__(y_box)
+        self.color = color
+        self.y_car = y_car
+        self.speed = speed
+        self.size = size
+        self.x_car = x_car
+        self.bet = bet
+        self.rank = rank
+        self.times = times
+    def draw(self, dis):
+        pygame.draw.rect(dis, self.color, (self.x_car, self.y_car, self.size[0], self.size[1]))
+    def running(self,dis):
+        self.x_car += self.speed
+        Racecar.draw(self, dis)
+
+    def main(self, cars, list_of_speed, dis):
+        if 970 - self.x_car < self.speed:
+            self.speed = 970 - self.x_car
+
+        if self.x_car <= 970:
+            dis.fill((0, 0, 0), (0, self.y_car, 1000, self.size[1]))
+        if self.x_car < 900 and self.x_box < 900:
+            self.drawbox(dis)
+
+        self.running(dis)
+        self.absorb(dis, list_of_speed, cars.index(self), cars)
+
+        if self.x_car == 970 and self.times == 1:
+            self.rank.append(self.bet)
+            self.times += 1
+
+        pygame.display.update()
+        fpsClock.tick(70)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+    def absorb(self, dis, l, i, cars):
+
+
+        while (self.y_car == self.y_box) and (self.x_car + self.size[0] >= self.x_box) and (self.x_car < 900 and self.x_box < 900):
+            other_cars = []
+            self.mystery_num = randint(1,902)
+            for car in cars:
+                if car.color != self.color:
+                    other_cars.append(car)
+
+            if self.x_car <= 970 or self.x_box < 970:
+                dis.fill((0,0,0), (0, self.y_car, 1000, self.size[1]))
+            Racecar.running(self, dis)
+            pygame.draw.rect(dis, self.color, (self.x_car, self.y_car, self.size[0], self.size[1]))
+            pygame.display.update()
+
+            self.x_box += randint(150,250)
+            if self.x_car < 900 and self.x_box < 900:
+                MysteryBox.drawbox(self, dis)
+                pygame.display.update()
+
+            if self.mystery_num >= 1 and self.mystery_num <= 200:
+                start = time.time()
+                self.speed = 0
+                while time.time() - start < 0.45:
+
+                    Racecar.running(self, dis)
+                    if self.x_car < 900 and self.x_box < 900:
+                        MysteryBox.drawbox(self, dis)
+                    for car in other_cars:
+                        car.main(cars, list_of_speed, dis)
+                    pygame.display.update()
+                    fpsClock.tick(70)
+                self.speed = l[i]
+                break
+            if self.mystery_num >= 201 and self.mystery_num <= 400:
+                start = time.time()
+                self.speed += 3
+                while time.time() - start < 0.37:
+                    if self.x_car <= 970 or self.x_box < 970:
+                        dis.fill((0, 0, 0), (0, self.y_car, 1000, self.size[1]))
+                    Racecar.running(self,dis)
+                    if self.x_car < 900 and self.x_box < 900:
+                        MysteryBox.drawbox(self, dis)
+                    for car in other_cars:
+                        car.main(cars, list_of_speed, dis)
+                    pygame.display.update()
+                    fpsClock.tick(70)
+                self.speed = l[i]
+                break
+
+            if self.mystery_num >= 401 and self.mystery_num <= 600:
+                start = time.time()
+                self.speed -= 5
+                while time.time() - start < 0.6:
+                    if self.x_car <= 970 or self.x_box < 970:
+                        dis.fill((0, 0, 0), (0, self.y_car, 1000, self.size[1]))
+                    Racecar.running(self,dis)
+                    if self.x_car < 900 and self.x_box < 900:
+                        MysteryBox.drawbox(self, dis)
+                    for car in other_cars:
+                        car.main(cars, list_of_speed, dis)
+                    pygame.display.update()
+                    fpsClock.tick(70)
+                self.speed = l[i]
+                break
+
+            if self.mystery_num >= 601 and self.mystery_num <= 700:
+                self.speed = 30
+                self.x_car += self.speed
+                self.speed = l[i]
+                break
+
+            if self.x_box >= 701 and self.x_box <= 900:
+                start = time.time()
+                self.speed = -self.speed
+                while time.time() - start < 0.5:
+                    self.x_car += self.speed
+                    if self.x_car <= 970 or self.x_box < 970:
+                        dis.fill((0, 0, 0), (0, self.y_car, 1000, self.size[1]))
+                    Racecar.running(self,dis)
+                    if self.x_car < 900 and self.x_box < 900:
+                        MysteryBox.drawbox(self, dis)
+                    for car in other_cars:
+                        car.main(cars, list_of_speed, dis)
+                    pygame.display.update()
+                    fpsClock.tick(70)
+                self.speed = l[i]
+                break
+
+            if self.mystery_num == 901:
+                self.x_car = 0
+                self.x_car += self.speed
+                break
+
+            if self.mystery_num == 902:
+                if self.x_car <= 970 or self.x_box < 970:
+                    dis.fill((0, 0, 0), (0, self.y_car, 1000, self.size[1]))
+                self.x_car = 970
+                self.speed = 0
+                Racecar.draw(self, dis)
+                break
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+class RadioButton(pygame.sprite.Sprite):
+    def __init__(self, x, y, w, h, font, text, amount):
+        super().__init__()
+        text_surf = font.render(text, True, (0, 0, 0))
+        self.button_image = pygame.Surface((w, h))
+        self.button_image.fill((96, 96, 96))
+        self.button_image.blit(text_surf, text_surf.get_rect(center=(w // 2, h // 2)))
+        self.hover_image = pygame.Surface((w, h))
+        self.hover_image.fill((96, 96, 96))
+        self.hover_image.blit(text_surf, text_surf.get_rect(center=(w // 2, h // 2)))
+        pygame.draw.rect(self.hover_image, (96, 196, 96), self.hover_image.get_rect(), 3)
+        self.clicked_image = pygame.Surface((w, h))
+        self.clicked_image.fill((96, 196, 96))
+        self.clicked_image.blit(text_surf, text_surf.get_rect(center=(w // 2, h // 2)))
+        self.image = self.button_image
+        self.rect = pygame.Rect(x, y, w, h)
+        self.clicked = False
+        self.buttons = None
+        self.amount = amount
+
+    def setRadioButtons(self, buttons):
+        self.buttons = buttons
+
+    def update(self, event_list, money, notiFont, dis):
+        noti = notiFont.render("You don't have enough money", True, (255, 0, 0))
+        hover = self.rect.collidepoint(pygame.mouse.get_pos())
+        for event in event_list:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if hover and event.button == 1:
+                    if self.amount > money:
+                        dis.fill(BLACK, (650,70,400,50))
+                        dis.blit(noti, (650,85))
+                    else:
+                        dis.fill(BLACK, (650,70,400,50))
+                        for rb in self.buttons:
+                            rb.clicked = False
+                        self.clicked = True
+
+        self.image = self.button_image
+        if self.clicked:
+            self.image = self.clicked_image
+        elif hover:
+            self.image = self.hover_image
+
+
+pygame.init()
+
+dis = pygame.display.set_mode((1000,600), pygame.RESIZABLE)
+fpsClock = pygame.time.Clock()
+FPS = 70
+
+#color
+RED = (255,0,0)
+GRAY = (192,192,192)
+WHITE = (255,255,255)
+BLUE = (0, 0, 255)
+GREEN = (0,255,0)
+YELLOW = (255,255,0)
+PURPLE = (255,0,250)
+BLACK = (0,0,0)
+
+money = 200
+# Font
+font = pygame.font.SysFont('sans', 30)
+notiFont = pygame.font.SysFont('sans', 20)
+
+you_win = font.render('YOU WIN', True, RED)
+you_lose = font.render('YOU LOSE', True, RED)
+you_currently_have = font.render('You currently have:', True, WHITE)
+current_money = font.render(str(money), True, WHITE)
+chose_your_bet = font.render('Choose your bet', True, WHITE)
+noti = notiFont.render('You have not chosen your bet', True, RED)
+
+# Box
+
+moneyBoxes = [
+    RadioButton(0, 70, 70, 50, font, "100", 100),
+    RadioButton(120, 70, 70, 50, font, "200", 200),
+    RadioButton(240, 70, 70, 50, font, "500", 500),
+    RadioButton(360, 70, 70, 50, font, "Half", money/2),
+    RadioButton(480, 70, 70, 50, font, "All-in", money)
+]
+
+
+fullscreen = False
+monitor = [pygame.display.Info().current_w, pygame.display.Info().current_h]
+
+pygame.display.update()
+
+game_started = False
+game_over = False
+rank = []
+run = True
+
+while True:
+    dis.fill(BLACK)
+    while game_started == False and game_over == False:
+        mousex, mousey = pygame.mouse.get_pos()
+        your_bet = False
+        w, h = dis.get_width(), dis.get_height()
+
+        #racecars
+        car_height = h / 30
+        red_car = Racecar(h/3, RED, 0, h/3, randint(6,8), [w*3/100, car_height], 1, rank, 1)
+        blue_car = Racecar((h-10)/2, BLUE, 0, (h-10)/2, randint(6,8), [w * 3 / 100, car_height], 2, rank, 1)
+        white_car = Racecar(2*h/3 - 10, WHITE, 0, 2*h/3 - 10, randint(6,8), [w * 3 / 100, car_height], 3, rank, 1)
+        green_car = Racecar((5*h/3 - 30)/2, GREEN, 0, (5*h/3 - 30)/2, randint(6,8), [w * 3 / 100, car_height], 4, rank, 1)
+        gray_car = Racecar(h - 20, GRAY, 0, h-20, randint(6,8), [w * 3 / 100, car_height], 5, rank, 1)
+
+        cars = []
+        cars.append(red_car)
+        cars.append(blue_car)
+        cars.append(white_car)
+        cars.append(green_car)
+        cars.append(gray_car)
+
+        list_of_speed = []
+        list_of_speed.append(red_car.speed)
+        list_of_speed.append(blue_car.speed)
+        list_of_speed.append(white_car.speed)
+        list_of_speed.append(green_car.speed)
+        list_of_speed.append(gray_car.speed)
+
+        # Text
+        dis.blit(you_currently_have, (650,0))
+        dis.blit(current_money, (870,0))
+        dis.blit(chose_your_bet, (0, 0))
+
+        # Race cars
+        red_car.draw(dis)
+        blue_car.draw(dis)
+        white_car.draw(dis)
+        green_car.draw(dis)
+        gray_car.draw(dis)
+
+        click_list = []
+        for mb in moneyBoxes:
+            mb.setRadioButtons(moneyBoxes)
+            click_list.append(mb.clicked)
+
+        group = pygame.sprite.Group(moneyBoxes)
+
+        fpsClock.tick(60)
+        event_list = pygame.event.get()
+        for event in event_list:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and (mousex >= 0 and mousex <= 30):
+                    if True in click_list:
+                        if (mousey >= h / 3 and mousey <= h / 3 + car_height):
+                            your_bet = 1
+                            game_started = True
+                        if (mousey >= (h - 10) / 2 and mousey <= (h - 10) / 2 + car_height):
+                            your_bet = 2
+                            game_started = True
+                        if (mousey >= 2 * h / 3 - 10 and mousey <= 2 * h / 3 - 10 + car_height):
+                            your_bet = 3
+                            game_started = True
+                        if (mousey >= (5 * h / 3 - 30) / 2 and mousey <= (5 * h / 3 - 30) / 2 + car_height):
+                            your_bet = 4
+                            game_started = True
+                        if (mousey >= h - 20 and mousey <= h - 20 + car_height):
+                            your_bet = 5
+                            game_started = True
+                    else:
+                        dis.fill(BLACK, (650,70,400,50))
+                        dis.blit(noti, dis.blit(noti, (650,85)))
+        group.update(event_list, money, notiFont, dis)
+
+        group.draw(dis)
+        pygame.display.flip()
+        pygame.display.update()
+
+
+    #boxes
+    box_lane_1 = MysteryBox(h / 3)
+    box_lane_2 = MysteryBox((h - 10) / 2)
+    box_lane_3 = MysteryBox(2 * h / 3 - 10)
+    box_lane_4 = MysteryBox((5 * h / 3 - 30) / 2)
+    box_lane_5 = MysteryBox(h - 20)
+
+    amount = False
+    for mb in moneyBoxes:
+        if mb.clicked == True:
+            amount = mb.amount
+
+    while game_started == True and game_over == False:
+        dis.fill(BLACK, (0,0,1000,70))
+        red_car.main(cars, list_of_speed, dis)
+        blue_car.main(cars, list_of_speed, dis)
+        white_car.main(cars, list_of_speed, dis)
+        green_car.main(cars, list_of_speed, dis)
+        gray_car.main(cars, list_of_speed, dis)
+
+        pygame.display.update()
+
+        if red_car.x_car == 970 and blue_car.x_car == 970 and white_car.x_car == 970 and green_car.x_car == 970 and gray_car.x_car == 970:
+            game_over = True
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+    if your_bet == red_car.rank[0]:
+         money = int(money + 10*amount)
+    else:
+        money = int(money - amount)
+
+    current_money = font.render(str(money), True, WHITE)
+    while game_over:
+        if your_bet == red_car.rank[0]:
+             dis.blit(you_currently_have, (650,0))
+             dis.blit(current_money, (870,0))
+             dis.blit(you_win, (0,0))
+        else:
+            dis.blit(you_currently_have, (650, 0))
+            dis.blit(current_money, (870, 0))
+            dis.blit(you_lose, (0,0))
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    game_over = False
+                    game_started = False
+                    for mb in moneyBoxes:
+                        mb.clicked = False
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
