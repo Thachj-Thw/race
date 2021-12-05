@@ -4,10 +4,6 @@ from random import randint
 import time
 import sys
 
-
-pygame.init()
-window = pygame.display.set_mode((1080, 600), pygame.RESIZABLE)
-
 # color
 RED = (255, 0, 0)
 GRAY = (192, 192, 192)
@@ -190,7 +186,6 @@ class Game:
         self.select = None
         self.clock = pygame.time.Clock()
         self.fps = 60
-        self.timer = None
 
     @staticmethod
     def font_sans(size):
@@ -206,7 +201,6 @@ class Game:
         self.message = "Choose your bet"
         self.bet = None
         self.select = None
-        self.timer = None
         pygame.display.set_mode(self.screen.get_size(), pygame.RESIZABLE)
 
     def change_status(self, text: str, color: tuple):
@@ -245,7 +239,7 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for button in self.bet_level:
                         if obj := button.check_mouse_click():
-                            if obj.amount > self.money:
+                            if self.money == 0 or self.money < obj.amount:
                                 self.message = "You don't have enough money"
                                 print("You don't have enough money")
                             else:
@@ -261,16 +255,17 @@ class Game:
                                 print("Selected", horse.ID)
                                 print("Bet", self.bet)
                                 self.select = horse.ID
-                                self.play()
+                                self.start()
                                 break
                             else:
                                 self.message = "You have not chosen your bet"
                                 print('You have not chosen your bet')
 
-    def play(self):
+    def start(self):
         pygame.display.set_mode(self.screen.get_size(), 0)
         self.draw_taskbar()
         rank = []
+        timer = 0
         while True:
             self.clock.tick(self.fps)
             # graphic
@@ -281,8 +276,8 @@ class Game:
             pygame.display.update()
             # event
             if all((horse.finished for horse in self.horses)):
-                if not self.timer:
-                    self.timer = time.perf_counter()
+                if not timer:
+                    timer = time.perf_counter()
                     print(rank)
                     if rank:
                         if self.select == rank[0]:
@@ -291,7 +286,7 @@ class Game:
                         else:
                             self.change_status("YOU LOSE", RED)
                             self.money -= self.bet
-                if time.perf_counter() - self.timer >= 1:
+                if time.perf_counter() - timer >= 1:
                     self.restart()
                     return
             for horse in self.horses:
@@ -307,11 +302,9 @@ class Game:
                     sys.exit(0)
                 if event.type == pygame.VIDEORESIZE:
                     pass
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self.restart()
-                        return
 
 
 if __name__ == '__main__':
+    pygame.init()
+    window = pygame.display.set_mode((1080, 600), pygame.RESIZABLE)
     Game(master=window).run()
