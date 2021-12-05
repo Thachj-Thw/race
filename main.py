@@ -38,22 +38,21 @@ class MysteryBox:
         screen.blit(self.image, (self.x_box, self.y_box))
 
 
-class RaceCar:
+class RaceCar(pygame.sprite.Sprite):
     def __init__(self, master, image, lane: int):
+        super().__init__()
         self.master = master
         self.image = image
         self.x = 0
         self.y = int(lane/5 * 2/3 * self.master.get_height() + self.master.get_height()/3)
-        self.speed = randint(6, 8)
         self.size = image.get_size()
+        self.rect = pygame.Rect((self.x, self.y), self.size)
+        self.speed = randint(6, 8)
         self.ID = lane
         self.finished = False
         self.box = MysteryBox((self.x, self.y))
         self.flip = False
         self.timer = None
-
-    def draw(self):
-        self.master.blit(self.image, (self.x, self.y))
 
     def reset(self):
         self.x = 0
@@ -71,7 +70,7 @@ class RaceCar:
 
     def update(self):
         if not self.finished:
-            self.x = max(0, min(self.x + self.speed, self.master.get_width() - self.size[0]))
+            self.rect.x = max(0, min(self.x + self.speed, self.master.get_width() - self.size[0]))
             if self.x >= self.box.x_box - self.size[0]//4:
                 self.box.hit = True
             if self.box.hit:
@@ -169,6 +168,7 @@ class Game:
             RaceCar(master=self.screen, image=img_horse3, lane=3),
             RaceCar(master=self.screen, image=img_horse4, lane=4)
         ]
+        self.group_horse = pygame.sprite.Group(self.horses)
         # Button bet
         x, y, s = 20, 70, 120
         self.bet_level = [
@@ -226,8 +226,7 @@ class Game:
             self.clock.tick(self.fps)
             # graphic
             self.draw_taskbar()
-            for horse in self.horses:
-                horse.draw()
+            self.group_horse.draw(self.screen)
             pygame.display.update()
             # event
             for event in pygame.event.get():
@@ -275,9 +274,8 @@ class Game:
             self.clock.tick(self.fps)
             # graphic
             self.screen.blit(self.racetrack_bg, (0, self.screen.get_height()//3 - 47))
-            for horse in self.horses:
-                horse.draw()
-                horse.update()
+            self.group_horse.draw(self.screen)
+            self.group_horse.update()
             pygame.display.update()
             # event
             if all((horse.finished for horse in self.horses)):
