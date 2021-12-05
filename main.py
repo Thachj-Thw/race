@@ -55,7 +55,7 @@ class RaceCar(pygame.sprite.Sprite):
         self.timer = None
 
     def reset(self):
-        self.x = 0
+        self.rect.x = 0
         self.finished = False
         self.speed = randint(6, 8)
         self.box.new(0)
@@ -66,12 +66,12 @@ class RaceCar(pygame.sprite.Sprite):
 
     def is_clicked(self):
         mouse_pos = pygame.mouse.get_pos()
-        return self.x < mouse_pos[0] < self.x + self.size[0] and self.y < mouse_pos[1] < self.y + self.size[1]
+        return self.rect.x < mouse_pos[0] < self.rect.x + self.size[0] and self.y < mouse_pos[1] < self.y + self.size[1]
 
     def update(self):
         if not self.finished:
-            self.rect.x = max(0, min(self.x + self.speed, self.master.get_width() - self.size[0]))
-            if self.x >= self.box.x_box - self.size[0]//4:
+            self.rect.x = max(0, min(self.rect.x + self.speed, self.master.get_width() - self.size[0]))
+            if self.rect.x >= self.box.x_box - self.size[0]//4:
                 self.box.hit = True
             if self.box.hit:
                 if self.box.mystery_num == 1000:
@@ -294,10 +294,10 @@ class Game:
                     return
             for horse in self.horses:
                 if not horse.finished:
-                    if horse.x == self.screen.get_width() - horse.size[0]:
+                    if horse.rect.x == self.screen.get_width() - horse.size[0]:
                         rank.append(horse.ID)
                         horse.finished = True
-                    if horse.x == 0:
+                    if horse.rect.x == 0:
                         horse.finished = True
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
