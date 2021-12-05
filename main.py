@@ -170,13 +170,13 @@ class Game:
             RaceCar(master=self.screen, image=img_horse4, lane=4)
         ]
         # Button bet
-        x, y = 20, 70
+        x, y, s = 20, 70, 120
         self.bet_level = [
             Button((x, y, 70, 50), ("sans", 30), "100", 100),
-            Button((x + 120, y, 70, 50), ("sans", 30), "200", 200),
-            Button((x + 240, y, 70, 50), ("sans", 30), "500", 500),
-            Button((x + 360, y, 70, 50), ("sans", 30), "Half", self.money/2),
-            Button((x + 480, y, 70, 50), ("sans", 30), "All-in", self.money)
+            Button((x + s, y, 70, 50), ("sans", 30), "200", 200),
+            Button((x + 2*s, y, 70, 50), ("sans", 30), "500", 500),
+            Button((x + 3*s, y, 70, 50), ("sans", 30), "Half", self.money/2),
+            Button((x + 4*s, y, 70, 50), ("sans", 30), "All-in", self.money)
         ]
         self.group_buttons = pygame.sprite.Group(self.bet_level)
 
