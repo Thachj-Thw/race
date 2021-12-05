@@ -238,6 +238,11 @@ class Game:
                     self.update_size()
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for button in self.bet_level:
+                        # kiểm tra tất cả các nút cược xem nút nào được nhấn khi có sự kiện nhấn chuột trái
+                        # := chỉ có trên python 3.9
+                        # phiên bản thấp hơn sử dụng
+                        # obj = button.check_mouse_click()
+                        # if obj:
                         if obj := button.check_mouse_click():
                             if self.money == 0 or self.money < obj.amount:
                                 self.message = "You don't have enough money"
