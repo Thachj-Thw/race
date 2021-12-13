@@ -107,9 +107,9 @@ class RaceCar(pygame.sprite.Sprite):
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, rect: tuple, font: tuple, text, amount):
+    def __init__(self, rect: tuple, font , text, amount):
         super().__init__()
-        self.font = pygame.font.SysFont(font[0], font[1])
+        self.font = font
         text_surf = self.font.render(text, True, (0, 0, 0))
         self.x = rect[0]
         self.y = rect[1]
@@ -148,12 +148,15 @@ class Game:
     def __init__(self, master: pygame.Surface):
         self.screen = master
         self.money = 400
-        # Images
+        # Font
+        self.font_sans_30 = pygame.font.SysFont("sans", 30)
+        self.font_sans_20 = pygame.font.SysFont("sans", 20)
+        # Images background
         size = list(self.screen.get_size())
         size[1] -= self.screen.get_height()//3 - 47
         self.racetrack_bg = pygame.transform.scale(pygame.image.load("images/racetrack.png"), size)
         self.bg = pygame.transform.scale(pygame.image.load("images/background.jpg"), self.screen.get_size())
-        # images horse
+        # Images horse
         img_size = (int(self.screen.get_width() * 0.1), int(self.screen.get_height()/20))
         img_horse0 = pygame.transform.scale(pygame.image.load("images/img1.png"), img_size)
         img_horse1 = pygame.transform.scale(pygame.image.load("images/img2.png"), img_size)
@@ -172,25 +175,21 @@ class Game:
         # Button bet
         x, y, s = 20, 70, 120
         self.bet_level = [
-            Button((x, y, 70, 50), ("sans", 30), "100", 100),
-            Button((x + s, y, 70, 50), ("sans", 30), "200", 200),
-            Button((x + 2*s, y, 70, 50), ("sans", 30), "500", 500),
-            Button((x + 3*s, y, 70, 50), ("sans", 30), "Half", self.money/2),
-            Button((x + 4*s, y, 70, 50), ("sans", 30), "All-in", self.money)
+            Button((x, y, 70, 50), self.font_sans_30, "100", 100),
+            Button((x + s, y, 70, 50), self.font_sans_30, "200", 200),
+            Button((x + 2*s, y, 70, 50), self.font_sans_30, "500", 500),
+            Button((x + 3*s, y, 70, 50), self.font_sans_30, "Half", self.money/2),
+            Button((x + 4*s, y, 70, 50), self.font_sans_30, "All-in", self.money)
         ]
         self.group_buttons = pygame.sprite.Group(self.bet_level)
 
-        self.status = self.font_sans(30).render("Choose your bet", True, WHITE)
+        self.status = self.font_sans_30.render("Choose your bet", True, WHITE)
         self.message = ""
-        self.bet = None
+        self.bet = 0
         self.select = None
         self.clock = pygame.time.Clock()
         self.fps = 60
-
-    @staticmethod
-    def font_sans(size):
-        return pygame.font.SysFont("sans", size=size)
-
+    
     def restart(self):
         for horse in self.horses:
             horse.reset()
@@ -199,18 +198,18 @@ class Game:
         self.bet_level[-1].amount = self.money
         self.bet_level[-2].amount = self.money/2
         self.message = "Choose your bet"
-        self.bet = None
+        self.bet = 0
         self.select = None
         pygame.display.set_mode(self.screen.get_size(), pygame.RESIZABLE)
 
     def change_status(self, text: str, color: tuple):
-        self.status = self.font_sans(30).render(text, True, color)
+        self.status = self.font_sans_30.render(text, True, color)
 
     def draw_taskbar(self):
         self.screen.blit(self.bg, (0, 0))
         self.screen.blit(self.status, (20, 5))
-        self.screen.blit(self.font_sans(20).render(self.message, True, RED), (650, 75))
-        text = self.font_sans(30).render(f"You currently have: {self.money:.2f}$", True, WHITE)
+        self.screen.blit(self.font_sans_20.render(self.message, True, RED), (650, 75))
+        text = self.font_sans_30.render(f"You currently have: {self.money:.2f}$", True, WHITE)
         self.screen.blit(text, (self.screen.get_width() - text.get_width() - 50, 5))
         self.group_buttons.draw(self.screen)
         self.group_buttons.update()
