@@ -63,7 +63,7 @@ class RaceCar(pygame.sprite.Sprite):
         if self.flip:
             self.image = pygame.transform.flip(self.image, True, False)
         self.flip = False
-        self.timer = None
+        self.timer = 0
 
     def is_clicked(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -79,37 +79,40 @@ class RaceCar(pygame.sprite.Sprite):
                 self.finished = True
             if self.rect.x >= self.box.x_box - self.size[0]//4:
                 self.box.hit = True
-            if self.box.hit:
-                if self.box.mystery_num == 1000:
-                    self.speed = 30
-                elif self.box.mystery_num == 1:
-                    self.speed = -30
-                    self.image = pygame.transform.flip(self.image, True, False)
-                    self.flip = True
-                elif self.box.mystery_num in range(2, 250):
-                    self.speed += 2
+            self.update_box()
+    
+    def update_box(self):
+        if self.box.hit:
+            if self.box.mystery_num == 1000:
+                self.speed = 30
+            elif self.box.mystery_num == 1:
+                self.speed = -30
+                self.image = pygame.transform.flip(self.image, True, False)
+                self.flip = True
+            elif self.box.mystery_num in range(2, 250):
+                self.speed += 2
+                self.box.new()
+            elif self.box.mystery_num in range(250, 500):
+                self.speed = max(self.speed - 2, 1)
+                self.box.new()
+            elif self.box.mystery_num in range(500, 750):
+                self.speed = 0
+                if not self.timer:
+                    self.timer = time.perf_counter()
+                if time.perf_counter() - self.timer > 0.3:
+                    self.speed = randint(6, 8)
                     self.box.new()
-                elif self.box.mystery_num in range(250, 500):
-                    self.speed = max(self.speed - 2, 1)
+                    self.timer = 0
+            elif self.box.mystery_num in range(750, 1000):
+                self.speed = -1
+                if not self.timer:
+                    self.timer = time.perf_counter()
+                if time.perf_counter() - self.timer > 0.2:
+                    self.speed = randint(6, 8)
                     self.box.new()
-                elif self.box.mystery_num in range(500, 750):
-                    self.speed = 0
-                    if not self.timer:
-                        self.timer = time.perf_counter()
-                    if time.perf_counter() - self.timer > 0.3:
-                        self.speed = randint(6, 8)
-                        self.box.new()
-                        self.timer = None
-                elif self.box.mystery_num in range(750, 1000):
-                    self.speed = -1
-                    if not self.timer:
-                        self.timer = time.perf_counter()
-                    if time.perf_counter() - self.timer > 0.2:
-                        self.speed = randint(6, 8)
-                        self.box.new()
-                        self.timer = None
-            else:
-                self.box.draw(self.master)
+                    self.timer = 0
+        else:
+            self.box.draw(self.master)
 
 
 class Button(pygame.sprite.Sprite):
@@ -276,7 +279,7 @@ class Game:
         if all((horse.finished for horse in self.horses)):
             if not self.timer:
                 self.timer = time.perf_counter()
-                rank = self.horses[0].rank
+                rank = RaceCar.rank
                 print(rank)
                 if rank:
                     if self.select == rank[0]:
