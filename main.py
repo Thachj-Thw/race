@@ -39,6 +39,7 @@ class MysteryBox:
 
 
 class RaceCar(pygame.sprite.Sprite):
+    rank = []
     def __init__(self, master, image, lane: int):
         super().__init__()
         self.master = master
@@ -71,6 +72,11 @@ class RaceCar(pygame.sprite.Sprite):
     def update(self):
         if not self.finished:
             self.rect.x = max(0, min(self.rect.x + self.speed, self.master.get_width() - self.size[0]))
+            if self.rect.x == self.master.get_width() - self.size[0]:
+                self.finished = True
+                self.rank.append(self.ID)
+            elif self.rect.x == 0:
+                self.finished = True
             if self.rect.x >= self.box.x_box - self.size[0]//4:
                 self.box.hit = True
             if self.box.hit:
@@ -131,10 +137,6 @@ class Button(pygame.sprite.Sprite):
         self.clicked = False
         self.amount = amount
 
-    def check_mouse_click(self):
-        if self.rect.collidepoint(pygame.mouse.get_pos()):
-            return self
-
     def update(self):
         if self.clicked:
             self.image = self.clicked_image
@@ -189,8 +191,10 @@ class Game:
         self.select = None
         self.clock = pygame.time.Clock()
         self.fps = 60
+        self.timer = 0
     
     def restart(self):
+        self.horses[0].rank.clear()
         for horse in self.horses:
             horse.reset()
         for button in self.bet_level:
@@ -219,6 +223,36 @@ class Game:
         size[1] -= self.screen.get_height() // 3 - 47
         self.racetrack_bg = pygame.transform.scale(pygame.image.load("images/racetrack.png"), size)
         self.bg = pygame.transform.scale(pygame.image.load("images/background.jpg"), self.screen.get_size())
+    
+    def update_event_buttons(self):
+        b_clicked = None
+        for button in self.bet_level:
+            if button.rect.collidepoint(pygame.mouse.get_pos()):
+                if 0 < self.money >= button.amount:
+                    self.message = ""
+                    self.bet = button.amount
+                    b_clicked = button
+                else:
+                    self.message = "You don't have enough money"
+                    print(self.message)
+                break
+        if b_clicked:
+            for b in self.bet_level:
+                b.clicked = False
+            b_clicked.clicked = True
+    
+    def update_event_horses(self):
+        for horse in self.horses:
+            if not horse.is_clicked():
+                continue
+            if self.bet:
+                print("Selected", horse.ID, "Bet", self.bet)
+                self.select = horse.ID
+                self.start()
+                break
+            else:
+                self.message = "You have not chosen your bet"
+                print('You have not chosen your bet')
 
     def run(self):
         while True:
@@ -235,40 +269,30 @@ class Game:
                 if event.type == pygame.VIDEORESIZE:
                     self.update_size()
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    for button in self.bet_level:
-                        # kiểm tra tất cả các nút cược xem nút nào được nhấn khi có sự kiện nhấn chuột trái
-                        # := chỉ có trên python 3.9
-                        # phiên bản thấp hơn sử dụng
-                        # obj = button.check_mouse_click()
-                        # if obj:
-                        if obj := button.check_mouse_click():
-                            if self.money == 0 or self.money < obj.amount:
-                                self.message = "You don't have enough money"
-                                print("You don't have enough money")
-                            else:
-                                self.message = ""
-                                for b in self.bet_level:
-                                    b.clicked = False
-                                obj.clicked = True
-                                self.bet = obj.amount
-                            break
-                    for horse in self.horses:
-                        if horse.is_clicked():
-                            if self.bet:
-                                print("Selected", horse.ID)
-                                print("Bet", self.bet)
-                                self.select = horse.ID
-                                self.start()
-                                break
-                            else:
-                                self.message = "You have not chosen your bet"
-                                print('You have not chosen your bet')
+                    self.update_event_buttons()
+                    self.update_event_horses()
+    
+    def end_game(self):
+        if all((horse.finished for horse in self.horses)):
+            if not self.timer:
+                self.timer = time.perf_counter()
+                rank = self.horses[0].rank
+                print(rank)
+                if rank:
+                    if self.select == rank[0]:
+                        self.change_status("YOU WIN", RED)
+                        self.money += self.bet * 4
+                    else:
+                        self.change_status("YOU LOSE", RED)
+                        self.money -= self.bet
+            if time.perf_counter() - self.timer >= 1:
+                self.timer = 0
+                return True
+        return False
 
     def start(self):
         pygame.display.set_mode(self.screen.get_size(), 0)
         self.draw_taskbar()
-        rank = []
-        timer = 0
         while True:
             self.clock.tick(self.fps)
             # graphic
@@ -277,27 +301,9 @@ class Game:
             self.group_horse.update()
             pygame.display.update()
             # event
-            if all((horse.finished for horse in self.horses)):
-                if not timer:
-                    timer = time.perf_counter()
-                    print(rank)
-                    if rank:
-                        if self.select == rank[0]:
-                            self.change_status("YOU WIN", RED)
-                            self.money += self.bet * 4
-                        else:
-                            self.change_status("YOU LOSE", RED)
-                            self.money -= self.bet
-                if time.perf_counter() - timer >= 1:
-                    self.restart()
-                    return
-            for horse in self.horses:
-                if not horse.finished:
-                    if horse.rect.x == self.screen.get_width() - horse.size[0]:
-                        rank.append(horse.ID)
-                        horse.finished = True
-                    if horse.rect.x == 0:
-                        horse.finished = True
+            if self.end_game():
+                self.restart()
+                return
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
